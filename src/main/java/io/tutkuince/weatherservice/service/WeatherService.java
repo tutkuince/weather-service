@@ -2,7 +2,7 @@ package io.tutkuince.weatherservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.tutkuince.weatherservice.dto.Request;
+import io.tutkuince.weatherservice.constants.Constants;
 import io.tutkuince.weatherservice.dto.WeatherDto;
 import io.tutkuince.weatherservice.dto.WeatherResponse;
 import io.tutkuince.weatherservice.model.Weather;
@@ -13,12 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
 public class WeatherService {
-    private static final String API_URL = "http://api.weatherstack.com/current?access_key=b8aa830384232bd9317bb097e493c61c&query=";
     private final WeatherRepository weatherRepository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -40,7 +38,7 @@ public class WeatherService {
     }
 
     private Weather getWeatherFromWeatherStack(String cityName) {
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(API_URL + cityName, String.class);
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(getWeatherStackUrl(cityName), String.class);
         try {
             WeatherResponse weatherResponse = objectMapper.readValue(responseEntity.getBody(), WeatherResponse.class);
             return saveWeather(cityName, weatherResponse);
@@ -59,5 +57,9 @@ public class WeatherService {
                 LocalDateTime.parse(weatherResponse.location().localTime(), DateUtil.formatDateTime())
         );
         return weatherRepository.save(weather);
+    }
+
+    private String getWeatherStackUrl(String cityName) {
+        return Constants.API_URL + Constants.ACCESS_KEY_PARAM + Constants.API_KEY + Constants.QUERY_KEY_PARAM + cityName;
     }
 }
