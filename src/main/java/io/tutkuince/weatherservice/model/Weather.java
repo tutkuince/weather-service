@@ -1,19 +1,16 @@
 package io.tutkuince.weatherservice.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class Weather {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibenate.id.UUIDGenerator")
-    private String id;
+    private UUID id;
     private String requestedCityName;
     private String cityName;
     private String country;
@@ -25,7 +22,7 @@ public class Weather {
     }
 
     public Weather(String requestedCityName, String cityName, String country, Integer temperature, LocalDateTime updatedTime, LocalDateTime responseLocalDate) {
-        // this.id = "";
+        this.id = UUID.randomUUID();
         this.requestedCityName = requestedCityName;
         this.cityName = cityName;
         this.country = country;
@@ -34,7 +31,7 @@ public class Weather {
         this.responseLocalDate = responseLocalDate;
     }
 
-    public Weather(String id, String requestedCityName, String cityName, String country, Integer temperature, LocalDateTime updatedTime, LocalDateTime responseLocalDate) {
+    public Weather(UUID id, String requestedCityName, String cityName, String country, Integer temperature, LocalDateTime updatedTime, LocalDateTime responseLocalDate) {
         this.id = id;
         this.requestedCityName = requestedCityName;
         this.cityName = cityName;
@@ -44,7 +41,7 @@ public class Weather {
         this.responseLocalDate = responseLocalDate;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
