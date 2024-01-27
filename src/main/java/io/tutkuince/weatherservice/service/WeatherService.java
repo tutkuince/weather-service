@@ -7,6 +7,7 @@ import io.tutkuince.weatherservice.dto.WeatherDto;
 import io.tutkuince.weatherservice.dto.WeatherResponse;
 import io.tutkuince.weatherservice.model.Weather;
 import io.tutkuince.weatherservice.repository.WeatherRepository;
+import io.tutkuince.weatherservice.util.DateUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -29,7 +30,13 @@ public class WeatherService {
 
     public WeatherDto getWeatherByCityName(String cityName) {
         Optional<Weather> weatherOptional = weatherRepository.findFirstByRequestedCityNameOrderByUpdatedTimeDesc(cityName);
-        return weatherOptional.map(WeatherDto::convertToWeatherDto).orElseGet(() -> WeatherDto.convertToWeatherDto(getWeatherFromWeatherStack(cityName)));
+
+        return weatherOptional.map(weather -> {
+            if (weather.getUpdatedTime().isBefore(LocalDateTime.now().minusSeconds(30))) {
+                return WeatherDto.convertToWeatherDto(getWeatherFromWeatherStack(cityName));
+            }
+            return WeatherDto.convertToWeatherDto(weather);
+        }).orElseGet(() -> WeatherDto.convertToWeatherDto(getWeatherFromWeatherStack(cityName)));
     }
 
     private Weather getWeatherFromWeatherStack(String cityName) {
@@ -43,14 +50,13 @@ public class WeatherService {
     }
 
     private Weather saveWeather(String cityName, WeatherResponse weatherResponse) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Weather weather = new Weather(
                 cityName,
                 weatherResponse.location().name(),
                 weatherResponse.location().country(),
                 weatherResponse.current().temperature(),
                 LocalDateTime.now(),
-                LocalDateTime.parse(weatherResponse.location().localTime(), dateTimeFormatter)
+                LocalDateTime.parse(weatherResponse.location().localTime(), DateUtil.formatDateTime())
         );
         return weatherRepository.save(weather);
     }
