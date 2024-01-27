@@ -32,7 +32,7 @@ public class WeatherService {
         Optional<Weather> weatherOptional = weatherRepository.findFirstByRequestedCityNameOrderByUpdatedTimeDesc(cityName);
 
         return weatherOptional.map(weather -> {
-            if (weather.getUpdatedTime().isBefore(LocalDateTime.now().minusSeconds(30))) {
+            if (weather.getUpdatedTime().isBefore(LocalDateTime.now().minusMinutes(30))) {
                 return WeatherDto.convertToWeatherDto(getWeatherFromWeatherStack(cityName));
             }
             return WeatherDto.convertToWeatherDto(weather);
