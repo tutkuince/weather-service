@@ -1,5 +1,6 @@
 package io.tutkuince.weatherservice.controller;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.tutkuince.weatherservice.controller.validation.CityNameConstraint;
 import io.tutkuince.weatherservice.dto.WeatherDto;
 import io.tutkuince.weatherservice.service.WeatherService;
@@ -23,6 +24,7 @@ public class WeatherController {
     }
 
     @GetMapping("/{cityName}")
+    @RateLimiter(name = "basic")
     public ResponseEntity<WeatherDto> getWeatherByCityName(@PathVariable @NotBlank @CityNameConstraint String cityName) {
         return ResponseEntity.ok(weatherService.getWeatherByCityName(cityName));
     }
