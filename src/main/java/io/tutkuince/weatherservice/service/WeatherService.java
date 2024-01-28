@@ -8,7 +8,14 @@ import io.tutkuince.weatherservice.dto.WeatherResponse;
 import io.tutkuince.weatherservice.model.Weather;
 import io.tutkuince.weatherservice.repository.WeatherRepository;
 import io.tutkuince.weatherservice.util.DateUtil;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,7 +23,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@CacheConfig(cacheNames = { "weathers" })
 public class WeatherService {
+
+    private final Logger logger = LoggerFactory.getLogger(WeatherService.class);
     private final WeatherRepository weatherRepository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -26,6 +36,7 @@ public class WeatherService {
         this.restTemplate = restTemplate;
     }
 
+    @Cacheable(key = "#cityName")
     public WeatherDto getWeatherByCityName(String cityName) {
         Optional<Weather> weatherOptional = weatherRepository.findFirstByRequestedCityNameOrderByUpdatedTimeDesc(cityName);
 
@@ -35,6 +46,13 @@ public class WeatherService {
             }
             return WeatherDto.convertToWeatherDto(weather);
         }).orElseGet(() -> WeatherDto.convertToWeatherDto(getWeatherFromWeatherStack(cityName)));
+    }
+
+    @CacheEvict(allEntries = true)
+    @PostConstruct
+    @Scheduled(fixedRateString = "10000")
+    public void clearCache() {
+        logger.info("Cache cleared");
     }
 
     private Weather getWeatherFromWeatherStack(String cityName) {
