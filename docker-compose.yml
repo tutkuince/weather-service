@@ -15,4 +15,20 @@ services:
       - "API_KEY=${API_KEY}"
     networks:
       - weather-service-network
-  
+  prometheus:
+    image: prom/prometheus:v2.35.0
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data/prometheus/config:/etc/prometheus/
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+    networks:
+      - weather-service-network
+
+
+
+networks:
+  weather-service-network:
